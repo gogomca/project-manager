@@ -3,6 +3,8 @@ package com.gogomca.projectmanager.persistence.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import org.springframework.stereotype.Repository;
 
@@ -16,22 +18,32 @@ public class ProjectManagerRepositoryImpl implements ProjectManagerRepository {
 
 	@Override
 	public Optional<Project> findById(Long id) {
-		return projects.stream().filter(p -> p.getId().equals(id)).findFirst(); // TODO: improve lambda.
+		return projects.stream().filter(p -> p.getId().equals(id)).findFirst(); // TODO: improve lambda through method
+																				// reference.
 	}
 
 	@Override
 	public Project save(Project project) {
 		// Both saving and updating behaviour are included.
-		// TODO: use functional approach
-		Project existingProject = findById(project.getId()).orElse(null);
-		if (existingProject == null) {
+		var projectToBeReturned = new AtomicReference<Project>();
+		findById(project.getId()).ifPresentOrElse(saveProject(project, projectToBeReturned),
+				updateProject(project, projectToBeReturned));
+		return projectToBeReturned.get();
+	}
+
+	private Runnable updateProject(Project project, AtomicReference<Project> projectToBeReturned) {
+		return () -> {
 			projects.add(project);
-			return project;
-		} else {
-			projects.remove(existingProject);
+			projectToBeReturned.set(project);
+		};
+	}
+
+	private Consumer<? super Project> saveProject(Project project, AtomicReference<Project> projectToBeReturned) {
+		return p -> {
+			projects.remove(p);
 			Project newProject = new Project(project);
 			projects.add(newProject);
-			return project;
-		}
+			projectToBeReturned.set(newProject);
+		};
 	}
 }
