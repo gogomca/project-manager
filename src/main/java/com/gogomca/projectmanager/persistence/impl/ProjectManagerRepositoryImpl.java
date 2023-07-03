@@ -18,8 +18,7 @@ public class ProjectManagerRepositoryImpl implements ProjectManagerRepository {
 
 	@Override
 	public Optional<Project> findById(Long id) {
-		return projects.stream().filter(p -> p.getId().equals(id)).findFirst(); // TODO: improve lambda through method
-																				// reference.
+		return projects.stream().filter(p -> p.getId().equals(id)).findFirst();
 	}
 
 	@Override
