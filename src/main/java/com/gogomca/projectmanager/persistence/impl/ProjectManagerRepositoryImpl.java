@@ -25,19 +25,19 @@ public class ProjectManagerRepositoryImpl implements ProjectManagerRepository {
 	public Project save(Project project) {
 		// Both saving and updating behaviour are included.
 		var projectToBeReturned = new AtomicReference<Project>();
-		findById(project.getId()).ifPresentOrElse(saveProject(project, projectToBeReturned),
-				updateProject(project, projectToBeReturned));
+		findById(project.getId()).ifPresentOrElse(updateProject(project, projectToBeReturned),
+				saveProject(project, projectToBeReturned));
 		return projectToBeReturned.get();
 	}
 
-	private Runnable updateProject(Project project, AtomicReference<Project> projectToBeReturned) {
+	private Runnable saveProject(Project project, AtomicReference<Project> projectToBeReturned) {
 		return () -> {
 			projects.add(project);
 			projectToBeReturned.set(project);
 		};
 	}
 
-	private Consumer<? super Project> saveProject(Project project, AtomicReference<Project> projectToBeReturned) {
+	private Consumer<? super Project> updateProject(Project project, AtomicReference<Project> projectToBeReturned) {
 		return p -> {
 			projects.remove(p);
 			Project newProject = new Project(project);
